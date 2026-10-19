@@ -1,0 +1,1100 @@
+```html
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tainted Grail: Kings of Ruin - Player Aid & Checklist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        thai: ['Sarabun', 'sans-serif'],
+                    },
+                    colors: {
+                        wyrd: {
+                            950: '#090a0f',
+                            900: '#12131c',
+                            800: '#1c1e2d',
+                            700: '#2a2d42',
+                            accent: '#c89d54',
+                            accentHover: '#dfb56c',
+                            purple: '#7e3ff2',
+                            crimson: '#b91c1c',
+                            emerald: '#15803d'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #090a0f;
+            color: #e2e8f0;
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(126, 63, 242, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 85% 80%, rgba(200, 157, 84, 0.06) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+        .font-title {
+            font-family: 'Cinzel', serif;
+        }
+        /* Custom Checkbox Styling */
+        .custom-checkbox:checked + div {
+            background-color: rgba(200, 157, 84, 0.12);
+            border-color: #c89d54;
+        }
+        .custom-checkbox:checked + div .check-icon {
+            background-color: #c89d54;
+            border-color: #c89d54;
+            color: #090a0f;
+        }
+        .custom-checkbox:checked + div .step-title {
+            text-decoration: line-through;
+            color: #94a3b8;
+        }
+        /* Smooth details accordion */
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+        .gold-border-glow {
+            box-shadow: 0 0 15px -3px rgba(200, 157, 84, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between pb-20 md:pb-8">
+
+    <header class="sticky top-0 z-30 bg-wyrd-950/90 backdrop-blur-md border-b border-wyrd-700/80 shadow-lg">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-wyrd-accent to-amber-800 flex items-center justify-center text-wyrd-950 shadow-md">
+                    <i class="ph-fill ph-crown-cross text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-title text-lg md:text-xl font-bold tracking-wider text-wyrd-accent leading-tight">
+                        TAINTED GRAIL
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium tracking-wide">KINGS OF RUIN • COMPANION CHECKLIST</p>
+                </div>
+            </div>
+
+            <!-- Day & Player Counter -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Player Count Selector (For scaling costs) -->
+                <div class="bg-wyrd-900 border border-wyrd-700 rounded-xl px-3 py-1.5 flex items-center gap-2">
+                    <i class="ph-fill ph-users text-wyrd-accent text-lg" title="จำนวนผู้เล่นในเกม"></i>
+                    <span class="text-xs text-slate-400 hidden sm:inline">ผู้เล่น:</span>
+                    <select id="playerCountSelect" onchange="updatePlayerScaling()" class="bg-transparent text-sm font-bold text-white focus:outline-none cursor-pointer">
+                        <option value="1" class="bg-wyrd-900">1 คน</option>
+                        <option value="2" class="bg-wyrd-900" selected>2 คน</option>
+                        <option value="3" class="bg-wyrd-900">3 คน</option>
+                        <option value="4" class="bg-wyrd-900">4 คน</option>
+                    </select>
+                </div>
+
+                <!-- Day Tracker -->
+                <div class="bg-wyrd-900 border border-wyrd-700 rounded-xl px-3 py-1.5 flex items-center gap-2">
+                    <i class="ph-fill ph-sun-horizon text-amber-400 text-lg"></i>
+                    <span class="text-xs text-slate-400">วันที่:</span>
+                    <button onclick="changeDay(-1)" class="w-6 h-6 rounded-lg bg-wyrd-800 hover:bg-wyrd-700 text-slate-300 flex items-center justify-center transition">
+                        <i class="ph-bold ph-minus text-xs"></i>
+                    </button>
+                    <span id="dayCountDisplay" class="font-title font-bold text-base text-wyrd-accent min-w-[1.5rem] text-center">1</span>
+                    <button onclick="changeDay(1)" class="w-6 h-6 rounded-lg bg-wyrd-800 hover:bg-wyrd-700 text-slate-300 flex items-center justify-center transition">
+                        <i class="ph-bold ph-plus text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="max-w-5xl mx-auto px-4 flex border-t border-wyrd-800/80">
+            <button onclick="switchMainTab('day')" id="tabBtn-day" class="flex-1 py-3 text-sm sm:text-base font-semibold border-b-2 border-wyrd-accent text-wyrd-accent flex items-center justify-center gap-2 transition">
+                <i class="ph-fill ph-calendar-check text-lg"></i>
+                <span>1. ลำดับการเล่นแต่ละวัน (Order of the Day)</span>
+            </button>
+            <button onclick="switchMainTab('encounter')" id="tabBtn-encounter" class="flex-1 py-3 text-sm sm:text-base font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center justify-center gap-2 transition">
+                <i class="ph-fill ph-sword text-lg"></i>
+                <span>2. การต่อสู้ & เจรจา (Combat & Diplomacy)</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-5xl w-full mx-auto px-4 py-6 flex-1">
+
+        <!-- ==========================================
+             TAB 1: ORDER OF THE DAY (3 STAGES)
+             ========================================== -->
+        <section id="section-day" class="space-y-6">
+            
+            <!-- Progress Bar & Reset Day Button -->
+            <div class="bg-wyrd-900/90 border border-wyrd-700 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 gold-border-glow">
+                <div class="w-full sm:w-2/3">
+                    <div class="flex justify-between text-xs mb-1.5">
+                        <span class="text-slate-300 font-medium">ความคืบหน้าของวันนี้ (Day Progress)</span>
+                        <span id="dayProgressText" class="text-wyrd-accent font-bold">0 / 13 ขั้นตอน</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-wyrd-950 rounded-full overflow-hidden border border-wyrd-800">
+                        <div id="dayProgressBar" class="h-full bg-gradient-to-r from-amber-600 to-wyrd-accent transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+                <button onclick="startNextDay()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-wyrd-accent to-amber-600 hover:from-wyrd-accentHover hover:to-amber-500 text-wyrd-950 font-bold text-sm flex items-center justify-center gap-2 shadow-md transition active:scale-95">
+                    <i class="ph-bold ph-arrows-clockwise text-lg"></i>
+                    <span>เริ่มวันถัดไป (รีเซ็ตเช็คลิสต์)</span>
+                </button>
+            </div>
+
+            <!-- STAGE I: START OF THE DAY -->
+            <div class="bg-wyrd-900/80 border border-wyrd-700 rounded-2xl overflow-hidden shadow-xl">
+                <div class="bg-gradient-to-r from-amber-950/60 via-wyrd-800 to-wyrd-900 px-5 py-4 border-b border-wyrd-700 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400 font-title font-bold flex items-center justify-center">I</span>
+                        <div>
+                            <h2 class="font-title text-lg font-bold text-amber-300 tracking-wide">START OF THE DAY</h2>
+                            <p class="text-xs text-slate-400">ช่วงเริ่มต้นวัน • ทำตามลำดับที่กำหนดไว้ด้านล่าง</p>
+                        </div>
+                    </div>
+                    <button onclick="resetGroup('start-day')" class="text-xs text-slate-400 hover:text-amber-300 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-wyrd-800/80 border border-wyrd-700 transition">
+                        <i class="ph ph-arrow-counter-clockwise"></i> รีเซ็ตหมวดนี้
+                    </button>
+                </div>
+
+                <div class="p-4 sm:p-5 space-y-3">
+                    <!-- Step 1 -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden day-check group-start-day" onchange="updateDayProgress()">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/60 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="step-title font-semibold text-slate-100 text-sm sm:text-base">1. ใช้ความสามารถช่วง Start of the Day</div>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1">หากมีเอฟเฟกต์จากการ์ด Item, Skill, Secret หรือ Event ที่ระบุว่าทำงานตอน <span class="text-amber-300 font-medium">"At the Start of the Day"</span> ให้ทำงานทั้งหมดในขั้นตอนนี้ (ผู้เล่นเลือกเรียงลำดับก่อน-หลังได้ตามต้องการ)</p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Step 2 -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden day-check group-start-day" onchange="updateDayProgress()">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/60 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="step-title font-semibold text-slate-100 text-sm sm:text-base">2. นำโทเคนเวลา (Time Markers) ออก</div>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1">หยิบโทเคนเวลาสีมืด <span class="px-1.5 py-0.5 rounded bg-slate-800 text-purple-300 font-mono text-xs">⏳ Dark Time</span> 1 อัน และสีสว่าง <span class="px-1.5 py-0.5 rounded bg-slate-800 text-amber-200 font-mono text-xs">⏳ Light Time</span> 1 อัน ออกจาก<strong>ทุกๆ การ์ด</strong>ที่มีโทเคนเหล่านี้อยู่ (แต่ไม่ต้องนำ Quest Marker ออก)</p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Step 3 -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden day-check group-start-day" onchange="updateDayProgress()">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/60 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="step-title font-semibold text-slate-100 text-sm sm:text-base">3. พลิกการ์ดสถานที่สู่ด้าน Wyrdness (หมอกมืด)</div>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1">ตรวจสอบสถานที่ทุกใบบนกระดาน สถานที่ใดที่<strong>ไม่มีโมเดลเสา Waystone</strong> วางติดอยู่ที่มุมการ์ดเลย ให้พลิกกลับไปเป็นด้าน <span class="text-purple-400 font-semibold">Wyrdness (ด้านมืด)</span> ทันที <span class="text-slate-500 italic">(หมายเหตุ: การพลิกขั้นตอนนี้จะไม่ทริกเกอร์เอฟเฟกต์สายฟ้า ⚡ บนการ์ด)</span></p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Step 4 -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden day-check group-start-day" onchange="updateDayProgress()">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/60 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="step-title font-semibold text-slate-100 text-sm sm:text-base">4. ทอยเต๋าขยับการ์เดี้ยน (Activate Guardians)</div>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1">หากมี Guardian บนกระดาน ให้ทอยเต๋า Guardian ทีละตัว:</p>
+                                <ul class="mt-2 space-y-1 text-xs text-slate-300 bg-wyrd-900/90 p-2.5 rounded-lg border border-wyrd-800">
+                                    <li>• <strong>ออกทิศทาง (N, S, E, W):</strong> เดินไปยังสถานที่ที่เชื่อมต่อในทิศนั้น (ถ้าไม่มีทางเชื่อมในทิศนั้น ให้เดินไปสถานที่ที่เชื่อมต่อที่มี<strong>หมายเลขมากที่สุด</strong>แทน)</li>
+                                    <li>• <strong>ออกหน้ากากบาท (X):</strong> ทำตามลำดับเงื่อนไขแรกที่เป็นจริง:
+                                        <span class="block pl-3 text-slate-400">1) ถ้าอยู่ช่องเดียวกับผู้เล่น ➔ บังคับเกิด Encounter ร่วมกันเป็นปาร์ตี้ทันที</span>
+                                        <span class="block pl-3 text-slate-400">2) ถ้าอยู่ในช่องที่มีเสา Waystone ➔ ทำลายเสา (Fade) ทิ้ง (หากมีหลายเสา ให้เอาเสาที่แตะสถานที่หมายเลขต่ำสุดออกก่อน)</span>
+                                        <span class="block pl-3 text-slate-400">3) ถ้าไม่มีทั้งคู่ ➔ เดินไปสถานที่เชื่อมต่อที่มีหมายเลขมากที่สุด</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Step 5 -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden day-check group-start-day" onchange="updateDayProgress()">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/60 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="step-title font-semibold text-slate-100 text-sm sm:text-base">5. เคลียร์พื้นที่ Active Events</div>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1">ทิ้งการ์ด Event ที่<strong>ไม่ใช่ Quest</strong> ออกจากช่อง Active Events (การ์ด Random Event ให้สอดไว้ใต้กอง Random Events ส่วน Story/Special Event ให้เก็บเข้ากล่อง) <span class="text-amber-300/90 font-medium">*ห้ามทิ้งการ์ดที่มี Quest เด็ดขาดจนกว่าการ์ดจะสั่ง*</span></p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Step 6 -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden day-check group-start-day" onchange="updateDayProgress()">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/60 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="step-title font-semibold text-slate-100 text-sm sm:text-base">6. เปิดการ์ด Event ใบใหม่ (Reveal a New Event)</div>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1">เปิดอ่านการ์ดใบบนสุดของกอง Event Deck ปฏิบัติตามเงื่อนไข แล้วนำไปวางในช่อง Active Events Area</p>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- STAGE II: DURING THE DAY -->
+            <div class="bg-wyrd-900/80 border border-wyrd-700 rounded-2xl overflow-hidden shadow-xl">
+                <div class="bg-gradient-to-r from-sky-950/60 via-wyrd-800 to-wyrd-900 px-5 py-4 border-b border-wyrd-700 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-sky-500/20 border border-sky-500/40 text-sky-400 font-title font-bold flex items-center justify-center">II</span>
+                        <div>
+                            <h2 class="font-title text-lg font-bold text-sky-300 tracking-wide">DURING THE DAY (DETAILED ACTIONS)</h2>
+                            <p class="text-xs text-slate-400">ระหว่างวัน • ผู้เล่นผลัดกันทำ Action ในลำดับใดก็ได้ กี่ครั้งก็ได้ จนกว่าทุกคนจะตกลงจบวัน</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 sm:p-5 space-y-4">
+                    <!-- Cost Rules & Party Rules Banner -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs bg-wyrd-950/80 p-3.5 rounded-xl border border-wyrd-800">
+                        <div>
+                            <h4 class="font-bold text-wyrd-accent mb-1 flex items-center gap-1.5">
+                                <i class="ph-fill ph-lightning"></i> กฎการจ่ายค่าร่าย Action (Action Costs)
+                            </h4>
+                            <p class="text-slate-400 leading-relaxed">
+                                ค่าร่ายจะมี 3 แบบคือ <span class="text-emerald-400 font-medium">Energy (⚡)</span>, <span class="text-red-400 font-medium">Health (🩸)</span>, และ <span class="text-purple-400 font-medium">Terror (👁️)</span> <strong>คุณต้องสามารถจ่ายค่าร่ายได้เต็มจำนวน</strong> (มีช่องว่างบนแทร็กพอให้เลื่อน) จึงจะทำ Action นั้นได้ (หากลด Health ลงต่ำกว่า Energy ตัวคั่น L-shape จะดัน Energy ลงมาเท่ากับ Health ด้วย)
+                            </p>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-sky-400 mb-1 flex items-center gap-1.5">
+                                <i class="ph-fill ph-users-three"></i> กฎระบบปาร์ตี้ (Party Actions)
+                            </h4>
+                            <p class="text-slate-400 leading-relaxed">
+                                ตัวละครที่อยู่สถานที่เดียวกันสามารถรวมกลุ่มทำ Action พร้อมกันได้ โดยช่วยกันแชร์ค่าร่าย (Energy, Health, Terror, Food, Wealth, Magic) แทนกันได้อิสระ <strong>ห้ามแยกปาร์ตี้กลางคัน</strong>จนกว่า Action นั้นจะจบสมบูรณ์
+                            </p>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-slate-400 font-medium">👇 คลิกที่แต่ละแอคชั่นด้านล่างเพื่อดูรายละเอียดและขั้นตอนแบบเจาะลึก (มีทั้ง 6 แอคชั่นหลัก):</p>
+
+                    <!-- 6 Detailed Actions Grid / Accordion -->
+                    <div class="space-y-3">
+                        
+                        <!-- ACTION 1: EXPLORE -->
+                        <details class="group bg-wyrd-950/70 border border-wyrd-800 rounded-xl overflow-hidden transition-all open:border-sky-500/50" open>
+                            <summary class="px-4 py-3.5 cursor-pointer flex items-center justify-between hover:bg-wyrd-800/40 transition">
+                                <div class="flex items-center gap-3">
+                                    <span class="px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center gap-1">
+                                        0 ⚡
+                                    </span>
+                                    <div>
+                                        <h3 class="font-bold text-slate-100 text-sm sm:text-base flex items-center gap-2">
+                                            1. สำรวจสถานที่ (Explore)
+                                            <span class="text-[11px] font-normal px-2 py-0.5 rounded bg-wyrd-800 text-slate-300">เฉพาะด้านสว่าง ☀️ & ไม่มี Guardian</span>
+                                        </h3>
+                                    </div>
+                                </div>
+                                <i class="ph-bold ph-caret-down text-slate-400 group-open:rotate-180 transition-transform"></i>
+                            </summary>
+                            <div class="px-4 pb-4 pt-2 border-t border-wyrd-800/80 text-xs sm:text-sm text-slate-300 space-y-2">
+                                <p>• <strong>เงื่อนไข:</strong> สถานที่ต้องหงายด้านสว่าง (Clear side) และไม่มี Guardian ยืนขวางอยู่ในสถานที่นั้น</p>
+                                <p>• <strong>ขั้นตอนการเล่น:</strong></p>
+                                <ol class="list-decimal list-inside pl-2 space-y-1 text-slate-400">
+                                    <li>เปิดหนังสือ <strong>Exploration Journal</strong> ไปยังหมายเลขหน้าของสถานที่นั้น แล้วเริ่มอ่านตั้งแต่ย่อหน้าบนสุด</li>
+                                    <li>หากเจอคำสั่งอัตโนมัติ (เช่น <em>"If you have status X, go to Verse Y"</em>) ต้องข้ามไปอ่านข้อนั้นทันทีโดยห้ามอ่านข้อความถัดไป</li>
+                                    <li>เมื่อเลือกตัวเลือกที่ต้องทอยเต๋าเช็คค่าสถานะ (Attribute Check) หากไปเป็นปาร์ตี้ ให้ใช้ค่าสถานะของ<strong>คนที่มีค่าสูงสุดในปาร์ตี้</strong>บวกกับผลเต๋า d6 (ห้ามนำค่าสถานะหลายคนมารวมกัน)</li>
+                                    <li>เมื่ออ่านจนเจอคำว่า <strong>"Exploration ends"</strong> ให้ปิดหนังสือ ถือว่าจบแอคชั่น (สามารถกด Explore ซ้ำอีกได้เรื่อยๆ หากต้องการ)</li>
+                                </ol>
+                                <div class="bg-sky-950/40 border border-sky-800/50 rounded-lg p-2.5 text-xs text-sky-200">
+                                    <strong>👥 กรณีทำเป็นปาร์ตี้:</strong> ค่าร่ายตัวเลือกข้างในหนังสือจะ<strong>ไม่คูณ</strong>ตามจำนวนคนในปาร์ตี้ (ยกเว้นเขียนว่า <em>"per Party member"</em> หรือ <em>"per Character"</em>) และสามารถช่วยกันออกค่า Energy หรือทรัพยากรได้
+                                </div>
+                            </div>
+                        </details>
+
+                        <!-- ACTION 2: TRAVEL -->
+                        <details class="group bg-wyrd-950/70 border border-wyrd-800 rounded-xl overflow-hidden transition-all open:border-sky-500/50">
+                            <summary class="px-4 py-3.5 cursor-pointer flex items-center justify-between hover:bg-wyrd-800/40 transition">
+                                <div class="flex items-center gap-3">
+                                    <span class="px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center gap-1">
+                                        1 ⚡
+                                    </span>
+                                    <div>
+                                        <h3 class="font-bold text-slate-100 text-sm sm:text-base">
+                                            2. เดินทางข้ามสถานที่ (Travel)
+                                        </h3>
+                                    </div>
+                                </div>
+                                <i class="ph-bold ph-caret-down text-slate-400 group-open:rotate-180 transition-transform"></i>
+                            </summary>
+                            <div class="px-4 pb-4 pt-2 border-t border-wyrd-800/80 text-xs sm:text-sm text-slate-300 space-y-2">
+                                <p>• <strong>ขั้นตอนการเดินทาง (ทำตามลำดับ 1 ➔ 2 ➔ 3):</strong></p>
+                                <ol class="list-decimal list-inside pl-2 space-y-1.5 text-slate-400">
+                                    <li><strong>ย้ายโมเดลตัวละคร:</strong> เดินไปยังการ์ดสถานที่ที่วางติดกันและ<strong>มีลูกศรหมายเลข (Direction Key) เชื่อมถึงกัน</strong> (หากวางติดกันแต่ไม่มีลูกศรเชื่อม แปลว่ามีภูเขา/แม่น้ำกั้น เดินข้ามไม่ได้)</li>
+                                    <li><strong>เช็คเอฟเฟกต์สายฟ้า (⚡ Instant Effect):</strong> ทันทีที่เหยียบสถานที่ใหม่ หากบนการ์ดมีสัญลักษณ์ ⚡ ต้องทำงานทันที! (เช่น จั่วการ์ด Encounter) <em>*แต่ถ้าข้างสัญลักษณ์ ⚡ มีรูปนาฬิกาทราย ⏳ และบนการ์ดยังมีโทเคน ⏳ วางอยู่ จะไม่ต้องทำงานเอฟเฟกต์นั้น แต่ถ้าไม่มีโทเคน ⏳ ให้ทำงานแล้ววางโทเคน ⏳ ตามจำนวนที่ระบุ*</em></li>
+                                    <li><strong>เปิดแผนที่เชื่อมต่อใบใหม่ (Reveal Locations):</strong> ดูขอบการ์ดสถานที่ที่คุณเพิ่งเดินเข้ามาว่ามีหมายเลข Direction Key ชี้ไปทางไหนที่ยังไม่มีการ์ดวาง ให้หยิบการ์ดหมายเลขนั้นมาวางต่อทันที:
+                                        <span class="block pl-4 text-purple-300">• หากการ์ดที่นำมาวาง <strong>ไม่มี</strong> เสา Waystone แตะอยู่มุมใดเลย ➔ ให้วางด้าน <strong>Wyrdness (ด้านมืด)</strong></span>
+                                        <span class="block pl-4 text-amber-300">• หากการ์ดที่นำมาวาง <strong>มี</strong> เสา Waystone แตะอยู่อย่างน้อย 1 มุม ➔ ให้วางด้าน <strong>Clear (ด้านสว่าง)</strong></span>
+                                        <span class="block pl-4 text-slate-500 italic">(หมายเหตุ: ถ้าไม่มีหมายเลขนั้น ให้ใช้หมายเลขที่มีตัวอักษร b, c, d ต่อท้ายตามลำดับ)</span>
+                                    </li>
+                                </ol>
+                                <div class="bg-sky-950/40 border border-sky-800/50 rounded-lg p-2.5 text-xs text-sky-200">
+                                    <strong>👥 กรณีทำเป็นปาร์ตี้:</strong> ค่าร่ายการเดินจะเพิ่มเป็น <strong>1 Energy ต่อสมาชิกในปาร์ตี้ 1 คน</strong> (ใครจ่ายแทนกันก็ได้) และหากมีเพื่อนยืนรออยู่ในสถานที่ปลายทางอยู่แล้ว เพื่อนสามารถขอแจมเข้าปาร์ตี้ก่อนที่เอฟเฟกต์ ⚡ จะทำงานได้ด้วย!
+                                </div>
+                            </div>
+                        </details>
+
+                        <!-- ACTION 3: ACTIVATE A WAYSTONE -->
+                        <details class="group bg-wyrd-950/70 border border-wyrd-800 rounded-xl overflow-hidden transition-all open:border-sky-500/50">
+                            <summary class="px-4 py-3.5 cursor-pointer flex items-center justify-between hover:bg-wyrd-800/40 transition">
+                                <div class="flex items-center gap-3">
+                                    <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 font-bold text-xs flex items-center gap-1">
+                                        2 ⚡ + ทรัพยากร
+                                    </span>
+                                    <div>
+                                        <h3 class="font-bold text-slate-100 text-sm sm:text-base">
+                                            3. เปิดใช้งานเสาเวย์สโตน (Activate a Waystone)
+                                        </h3>
+                                    </div>
+                                </div>
+                                <i class="ph-bold ph-caret-down text-slate-400 group-open:rotate-180 transition-transform"></i>
+                            </summary>
+                            <div class="px-4 pb-4 pt-2 border-t border-wyrd-800/80 text-xs sm:text-sm text-slate-300 space-y-2.5">
+                                <p>• <strong>เงื่อนไข:</strong> ทำได้เมื่อสถานที่ที่คุณอยู่มีช่องวางเสา Waystone ที่มุมการ์ดและยังว่างอยู่</p>
+                                <p>• <strong>ค่าร่าย:</strong> จ่าย <strong>2 Energy (⚡)</strong> พร้อมกับเลือกรูปแบบการจ่าย 1 อย่างด้านล่าง (คำนวณตามจำนวนตัวละครทั้งหมดในเกม: <span class="text-wyrd-accent font-bold" id="waystonePlayerLabel">2 คน</span>):</p>
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                    <div class="bg-wyrd-900 border border-purple-500/40 rounded-lg p-3">
+                                        <div class="font-bold text-purple-300 text-xs mb-1">ทางเลือก A: จ่ายด้วยทรัพยากร</div>
+                                        <p class="text-xs text-slate-300">
+                                            จ่าย <span id="wsMagicCost" class="font-bold text-purple-400">2 Magic</span> + จ่าย <span id="wsResCost" class="font-bold text-amber-300">2 Wealth หรือ Food</span> (คละกันได้ คิดตามจำนวนผู้เล่นในเกมคนละ 1 Magic และ 1 Wealth/Food)
+                                        </p>
+                                    </div>
+                                    <div class="bg-wyrd-900 border border-red-500/40 rounded-lg p-3">
+                                        <div class="font-bold text-red-400 text-xs mb-1">ทางเลือก B: จ่ายด้วยเลือด (Blood Price)</div>
+                                        <p class="text-xs text-slate-300">
+                                            จ่าย <span id="wsHealthCost" class="font-bold text-red-400">6 Health (🩸)</span> และรับ <span id="wsTerrorCost" class="font-bold text-purple-400">4 Terror (👁️)</span> (คิดตามจำนวนผู้เล่นในเกมคนละ 3 🩸 และ 2 👁️ ต้องมีช่องพอรับ Terror ให้ครบด้วย)
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <p>• <strong>ผลลัพธ์:</strong> นำโมเดล Waystone ไปวางที่มุมการ์ดนั้น (1 เสาจะคลุมพื้นที่ได้สูงสุด 4 การ์ดที่มุมชนกัน) แล้ว<strong>พลิกสถานที่ด้านมืดทุกใบที่แตะเสานี้ให้กลายเป็นด้านสว่าง (☀️) ทันที!</strong> (หากโมเดลเสาทั้ง 3 ต้นถูกวางบนกระดานหมดแล้ว ให้ย้ายเสาจากที่อื่นมาวางได้)</p>
+                                <div class="bg-sky-950/40 border border-sky-800/50 rounded-lg p-2.5 text-xs text-sky-200">
+                                    <strong>👥 กรณีทำเป็นปาร์ตี้:</strong> สมาชิกในปาร์ตี้สามารถช่วยกันหารค่าใช้จ่ายทั้งหมดได้ตามใจชอบ (รวมถึงช่วยกันแบ่งจ่ายเลือดและแบ่งรับ Terror ใน Blood Price ได้ด้วย)
+                                </div>
+                            </div>
+                        </details>
+
+                        <!-- ACTION 4: CHALLENGE A GUARDIAN -->
+                        <details class="group bg-wyrd-950/70 border border-wyrd-800 rounded-xl overflow-hidden transition-all open:border-sky-500/50">
+                            <summary class="px-4 py-3.5 cursor-pointer flex items-center justify-between hover:bg-wyrd-800/40 transition">
+                                <div class="flex items-center gap-3">
+                                    <span class="px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center gap-1">
+                                        0 ⚡
+                                    </span>
+                                    <div>
+                                        <h3 class="font-bold text-slate-100 text-sm sm:text-base flex items-center gap-2">
+                                            4. ท้าชนการ์เดี้ยน (Challenge a Guardian)
+                                            <span class="text-[11px] font-normal px-2 py-0.5 rounded bg-red-950/80 text-red-300 border border-red-800/50">เมื่อมี Guardian ในพื้นที่</span>
+                                        </h3>
+                                    </div>
+                                </div>
+                                <i class="ph-bold ph-caret-down text-slate-400 group-open:rotate-180 transition-transform"></i>
+                            </summary>
+                            <div class="px-4 pb-4 pt-2 border-t border-wyrd-800/80 text-xs sm:text-sm text-slate-300 space-y-2">
+                                <p>• <strong>เหตุผลที่ต้องสู้:</strong> ตราบใดที่มี Guardian ยืนอยู่ในสถานที่นั้น ผู้เล่นจะ<strong>ไม่สามารถ</strong>ทำแอคชั่น Explore หรือ Location Action ในสถานที่นั้นได้เลย</p>
+                                <p>• <strong>ขั้นตอน:</strong> เลือก Guardian 1 ตัวในสถานที่ของคุณ แล้วเริ่มเข้าสู่กระบวนการ Combat หรือ Diplomacy ตามประเภทของการ์ดใบนั้น หากเอาชนะได้ ให้นำสแตนดี้ Guardian ออกจากกระดานและเก็บการ์ดไว้ใต้กอง</p>
+                                <div class="bg-sky-950/40 border border-sky-800/50 rounded-lg p-2.5 text-xs text-sky-200">
+                                    <strong>👥 กรณีทำเป็นปาร์ตี้:</strong> เข้าต่อสู้หรือเจรจาร่วมกันทั้งปาร์ตี้
+                                </div>
+                            </div>
+                        </details>
+
+                        <!-- ACTION 5: LOCATION ACTION -->
+                        <details class="group bg-wyrd-950/70 border border-wyrd-800 rounded-xl overflow-hidden transition-all open:border-sky-500/50">
+                            <summary class="px-4 py-3.5 cursor-pointer flex items-center justify-between hover:bg-wyrd-800/40 transition">
+                                <div class="flex items-center gap-3">
+                                    <span class="px-2.5 py-1 rounded-lg bg-slate-700 text-slate-200 font-bold text-xs">
+                                        ตามการ์ดระบุ
+                                    </span>
+                                    <div>
+                                        <h3 class="font-bold text-slate-100 text-sm sm:text-base flex items-center gap-2">
+                                            5. แอคชั่นประจำสถานที่ (Location Action)
+                                            <span class="text-[11px] font-normal px-2 py-0.5 rounded bg-wyrd-800 text-slate-300">ไม่มี Guardian</span>
+                                        </h3>
+                                    </div>
+                                </div>
+                                <i class="ph-bold ph-caret-down text-slate-400 group-open:rotate-180 transition-transform"></i>
+                            </summary>
+                            <div class="px-4 pb-4 pt-2 border-t border-wyrd-800/80 text-xs sm:text-sm text-slate-300 space-y-2">
+                                <p>• <strong>รายละเอียด:</strong> บนหน้าการ์ดสถานที่หลายใบจะมีแอคชั่นเฉพาะตัวเขียนไว้ (เช่น <em>2⚡ Hunt: Gain 2 Food. Draw a green Encounter</em>) สามารถทำได้ทั้งด้านสว่างและด้านมืดหากการ์ดด้านนั้นมีแอคชั่นเขียนไว้ และไม่มี Guardian ขวางอยู่</p>
+                                <p>• <strong>ข้อควรระวัง (⏳ Cooldown):</strong> หากข้างชื่อ Location Action มีสัญลักษณ์นาฬิกาทราย ⏳ แปลว่าเมื่อทำเสร็จแล้วต้องวางโทเคน ⏳ ตามจำนวนที่ระบุ และจะทำแอคชั่นนี้ซ้ำไม่ได้จนกว่าโทเคน ⏳ จะถูกลบออกหมดในช่วงเริ่มต้นวันถัดๆ ไป</p>
+                                <div class="bg-sky-950/40 border border-sky-800/50 rounded-lg p-2.5 text-xs text-sky-200">
+                                    <strong>👥 กรณีทำเป็นปาร์ตี้:</strong> จ่ายค่าร่ายเพียง <strong>1 ครั้ง</strong> (ช่วยกันหารค่าร่ายได้) และได้รับผลตอบแทนเพียง <strong>1 ครั้ง</strong> แต่หากแอคชั่นนั้นทำให้เกิด Encounter ทุกคนในปาร์ตี้จะได้ร่วมสู้ด้วยกันทั้งหมด!
+                                </div>
+                            </div>
+                        </details>
+
+                        <!-- ACTION 6: CHARACTER / SKILL / ITEM / SECRET ACTIONS -->
+                        <details class="group bg-wyrd-950/70 border border-wyrd-800 rounded-xl overflow-hidden transition-all open:border-sky-500/50">
+                            <summary class="px-4 py-3.5 cursor-pointer flex items-center justify-between hover:bg-wyrd-800/40 transition">
+                                <div class="flex items-center gap-3">
+                                    <span class="px-2.5 py-1 rounded-lg bg-slate-700 text-slate-200 font-bold text-xs">
+                                        ตามการ์ดระบุ
+                                    </span>
+                                    <div>
+                                        <h3 class="font-bold text-slate-100 text-sm sm:text-base">
+                                            6. แอคชั่นประจำตัวละคร, สกิล, ไอเทม และความลับ (Character / Skill / Item / Secret)
+                                        </h3>
+                                    </div>
+                                </div>
+                                <i class="ph-bold ph-caret-down text-slate-400 group-open:rotate-180 transition-transform"></i>
+                            </summary>
+                            <div class="px-4 pb-4 pt-2 border-t border-wyrd-800/80 text-xs sm:text-sm text-slate-300 space-y-2">
+                                <p>• <strong>รายละเอียด:</strong> ตัวละครทุกตัวจะมีแอคชั่นเฉพาะตัวบนแผ่น Character Tile (เช่น Elgan จ่าย 2⚡ + 1 Food เพื่อสร้างเทียน Wyrdcandle) รวมถึงแอคชั่นที่ได้จากแผ่นป้าย Skill, การ์ด Item หรือ Secret Card</p>
+                                <p>• <strong>การแลกของ (Trading):</strong> ผู้เล่นที่อยู่สถานที่เดียวกันและไม่ได้กำลังทำ Action อยู่ สามารถแลกเปลี่ยน Food, Wealth, Item และ Secret (ที่ไม่ติดคำว่า Personal) กันได้ฟรีตลอดเวลา</p>
+                                <div class="bg-sky-950/40 border border-sky-800/50 rounded-lg p-2.5 text-xs text-sky-200">
+                                    <strong>👥 กรณีทำเป็นปาร์ตี้ (กฎเหล็ก):</strong> มีเพียงเจ้าของความสามารถเท่านั้นที่กดใช้ได้ โดยเพื่อนในปาร์ตี้ช่วยออกค่าร่ายได้ <strong>แต่เจ้าของความสามารถจะต้องจ่ายเองอย่างน้อย 1 หน่วยเสมอ</strong> (1⚡, 1🩸 หรือ 1👁️ ตามที่อยู่ในค่าร่าย)
+                                </div>
+                            </div>
+                        </details>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- STAGE III: END OF THE DAY -->
+            <div class="bg-wyrd-900/80 border border-wyrd-700 rounded-2xl overflow-hidden shadow-xl">
+                <div class="bg-gradient-to-r from-purple-950/60 via-wyrd-800 to-wyrd-900 px-5 py-4 border-b border-wyrd-700 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/40 text-purple-300 font-title font-bold flex items-center justify-center">III</span>
+                        <div>
+                            <h2 class="font-title text-lg font-bold text-purple-300 tracking-wide">END OF THE DAY</h2>
+                            <p class="text-xs text-slate-400">ช่วงสิ้นสุดวัน • เมื่อผู้เล่นทุกคนตกลงจบวัน ให้ทำตามลำดับ 1-7 สำหรับตัวละครทุกตัว</p>
+                        </div>
+                    </div>
+                    <button onclick="resetGroup('end-day')" class="text-xs text-slate-400 hover:text-purple-300 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-wyrd-800/80 border border-wyrd-700 transition">
+                        <i class="ph ph-arrow-counter-clockwise"></i> รีเซ็ตหมวดนี้
+                    </button>
+                </div>
+
+                <div class="p-4 sm:p-5 space-y-3">
+                    <!-- End Step 1 -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden day-check group-end-day" onchange="updateDayProgress()">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/60 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="step-title font-semibold text-slate-100 text-sm sm:text-base">1. ใช้ความสามารถช่วง End of the Day</div>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1">หากมีเอฟเฟกต์จาก Item, Skill หรือสถานะใดๆ ที่ระบุว่าทำงานตอน <span class="text-purple-300 font-medium">"At the End of the Day"</span> ให้ทำงานทั้งหมดในขั้นตอนนี้</p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- End Step 2 -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden day-check group-end-day" onchange="updateDayProgress()">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/60 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="step-title font-semibold text-slate-100 text-sm sm:text-base">2. พักผ่อนฟื้นฟูพลังงาน (Rest)</div>
+                                <div class="text-xs sm:text-sm text-slate-400 mt-1 space-y-1">
+                                    <p>• <strong>ถ้าไม่ได้เหนื่อยล้า (Not Exhausted):</strong> เลื่อนโทเคน Energy (⚡) กลับไปยังจุดเริ่มต้น (ช่องลูกศรสีแดง) <span class="text-amber-300">*แต่ห้ามเกินระดับของโทเคน Health (🩸) ตัว L-shape!*</span></p>
+                                    <p>• <strong>ถ้าเหนื่อยล้า (Exhausted - Energy อยู่ที่ช่องสีแดงล่างสุด):</strong> ฟื้นฟูเพียง <strong>+4 Energy (⚡)</strong> เท่านั้น (ไม่เกินระดับ Health)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- End Step 3 -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden day-check group-end-day" onchange="updateDayProgress()">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/60 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="step-title font-semibold text-slate-100 text-sm sm:text-base">3. กินอาหารฟื้นฟูร่างกาย (Recover)</div>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1">ผู้เล่นแต่ละคนเลือกได้ว่าจะ <strong>จ่าย 1 Food</strong> หรือไม่ (ทำได้สูงสุดคนละ 1 ครั้ง) หากจ่ายจะได้รับ: <span class="text-red-400 font-semibold">+1 Health (🩸)</span>, <span class="text-emerald-400 font-semibold">+1 Energy (⚡)</span>, และ <span class="text-purple-400 font-semibold">ลด -1 Terror (👁️)</span></p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- End Step 4 -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden day-check group-end-day" onchange="updateDayProgress()">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/60 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="step-title font-semibold text-slate-100 text-sm sm:text-base">4. ได้รับผลกระทบจากหมอกมืด (Suffer from Wyrdness)</div>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1">หากตัวละครของคุณจบวันอยู่ในสถานที่ที่เป็นด้านมืด <span class="text-purple-400 font-semibold">(Wyrdness Side)</span> จะต้องโดนโทษ: <span class="text-red-400 font-bold">เสีย -2 Health (🩸)</span> และ <span class="text-purple-400 font-bold">เพิ่ม +2 Terror (👁️)</span> ทันที!</p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- End Step 5 -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden day-check group-end-day" onchange="updateDayProgress()">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/60 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="step-title font-semibold text-slate-100 text-sm sm:text-base">5. อัปเกรดตัวละครด้วย Exp (Advance Your Character)</div>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1">สามารถใช้แต้ม Exp ซื้อการพัฒนาตัวละครได้ตามต้องการ:</p>
+                                <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                                    <div class="bg-wyrd-900 p-2.5 rounded-lg border border-wyrd-800">
+                                        <span class="text-wyrd-accent font-bold block">• อัปค่าสถานะ (Attribute)</span>
+                                        <span class="text-slate-400">จ่าย <strong>2 Exp + 1 Exp</strong> ต่อแต้มที่มีอยู่แล้วในคู่สายตรงข้ามนั้น (เริ่มต้นอัปได้สูงสุด 2 แต้ม ต้องซื้อ Skill ก่อนถึงจะขยายช่องที่ 3 ได้)</span>
+                                    </div>
+                                    <div class="bg-wyrd-900 p-2.5 rounded-lg border border-wyrd-800">
+                                        <span class="text-sky-400 font-bold block">• เรียนรู้สกิล (Gain Skill)</span>
+                                        <span class="text-slate-400">เมื่ออัป Attribute เต็มช่องที่มีแล้ว จ่าย <strong>4 Exp + 4 Exp</strong> ต่อจำนวน Skill ที่มีในคู่สายตรงข้ามนั้น</span>
+                                    </div>
+                                    <div class="bg-wyrd-900 p-2.5 rounded-lg border border-wyrd-800">
+                                        <span class="text-emerald-400 font-bold block">• ซื้อการ์ดใหม่เข้าเด็ค</span>
+                                        <span class="text-slate-400">จ่าย <strong>2 Exp</strong> จั่วการ์ด 3 ใบจากกอง Advancement Pool (Combat หรือ Diplomacy) เลือกเก็บ 1 ใบ ที่เหลือสับคืนกอง</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- End Step 6 -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden day-check group-end-day" onchange="updateDayProgress()">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/60 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="step-title font-semibold text-slate-100 text-sm sm:text-base">6. ปรับแต่งเด็คการ์ด (Modify Character's Decks)</div>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1">สามารถสับเปลี่ยนการ์ดที่เคยปลดล็อกมาแล้วเข้าหรือออกจากเด็ค Combat และ Diplomacy ได้อย่างอิสระ <strong>กฎเหล็ก: แต่ละเด็คต้องมีการ์ดอย่างน้อย 10 ใบเสมอ!</strong> (และหากมีการ์ดขาว Wyrdform ห้ามนำออกจากเด็ค)</p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- End Step 7 -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden day-check group-end-day" onchange="updateDayProgress()">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/60 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="step-title font-semibold text-slate-100 text-sm sm:text-base">7. สัมผัสนิมิตแห่งความฝัน (Experience Visions)</div>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1">หากสถานที่ที่คุณพักอยู่มีตราประทับรูปดวงตานิมิต (Vision Seal) อยู่ข้างชื่อการ์ด คุณสามารถเปิดหน้าสุดท้ายของสถานที่นั้นใน Exploration Journal เพื่ออ่านเนื้อเรื่อง <strong>Vision</strong> ร่วมกันเป็นปาร์ตี้ได้ (อ่านหรือไม่ก็ได้ ยกเว้นมีคู่หู Isolut ที่บังคับให้อ่านเสมอ)</p>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             TAB 2: COMBAT & DIPLOMACY CHECKLIST
+             ========================================== -->
+        <section id="section-encounter" class="hidden space-y-6">
+
+            <!-- Mode Switcher (Combat vs Diplomacy) -->
+            <div class="bg-wyrd-900 border border-wyrd-700 rounded-2xl p-2 flex gap-2">
+                <button onclick="switchEncounterMode('combat')" id="encModeBtn-combat" class="flex-1 py-3 px-4 rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 bg-gradient-to-r from-red-900/80 to-red-800/60 text-red-100 border border-red-500/50 shadow-md transition">
+                    <i class="ph-fill ph-sword text-xl text-red-400"></i>
+                    <span>โหมดการต่อสู้ (Combat)</span>
+                </button>
+                <button onclick="switchEncounterMode('diplomacy')" id="encModeBtn-diplomacy" class="flex-1 py-3 px-4 rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 text-slate-400 hover:text-slate-200 border border-transparent transition">
+                    <i class="ph-fill ph-chats-circle text-xl text-sky-400"></i>
+                    <span>โหมดการเจรจา (Diplomacy)</span>
+                </button>
+            </div>
+
+            <!-- Interactive Live Tracker Widget -->
+            <div id="tracker-combat" class="bg-gradient-to-br from-red-950/40 via-wyrd-900 to-wyrd-950 border border-red-800/50 rounded-2xl p-4 sm:p-5 shadow-xl">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs uppercase tracking-wider text-red-400 font-bold flex items-center gap-1.5">
+                            <i class="ph-fill ph-shield-Pool"></i> Combat Pool Tracker
+                        </span>
+                        <h3 class="text-sm sm:text-base text-slate-300 mt-0.5">แต้มต่อสู้สะสมในกองกลาง (ชนะทันทีเมื่อแต้ม ≥ เลือดศัตรู)</h3>
+                    </div>
+                    <div class="flex items-center gap-4 mx-auto sm:mx-0">
+                        <button onclick="adjustCombatPool(-1)" class="w-10 h-10 rounded-xl bg-wyrd-800 hover:bg-red-900/60 border border-wyrd-700 text-white font-bold text-lg flex items-center justify-center transition active:scale-95">-1</button>
+                        <div class="text-center min-w-[4rem]">
+                            <span id="combatPoolValue" class="font-title text-3xl font-extrabold text-red-400">0</span>
+                            <span class="block text-[10px] text-slate-400">COMBAT POOL</span>
+                        </div>
+                        <button onclick="adjustCombatPool(1)" class="w-10 h-10 rounded-xl bg-wyrd-800 hover:bg-emerald-900/60 border border-wyrd-700 text-white font-bold text-lg flex items-center justify-center transition active:scale-95">+1</button>
+                        <button onclick="adjustCombatPool(5)" class="px-3 h-10 rounded-xl bg-purple-900/50 hover:bg-purple-800/60 border border-purple-500/40 text-purple-200 font-bold text-sm flex items-center justify-center transition active:scale-95">+5</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tracker-diplomacy" class="hidden bg-gradient-to-br from-sky-950/40 via-wyrd-900 to-wyrd-950 border border-sky-800/50 rounded-2xl p-4 sm:p-5 shadow-xl">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                    <!-- Duration Die Tracker -->
+                    <div class="flex items-center justify-between bg-wyrd-950/70 p-3.5 rounded-xl border border-wyrd-800">
+                        <div>
+                            <span class="text-xs font-bold text-sky-400 uppercase flex items-center gap-1">
+                                <i class="ph-fill ph-hourglass-high"></i> Duration Die (เวลาเจรจา)
+                            </span>
+                            <p class="text-xs text-slate-400 mt-0.5">เมื่อลดเหลือ 0 จะจบและตัดสินผลทันที (สูงสุดไม่เกิน 10)</p>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <button onclick="adjustDuration(-1)" class="w-9 h-9 rounded-lg bg-wyrd-800 hover:bg-red-900/50 border border-wyrd-700 text-white font-bold">-</button>
+                            <span id="diplomacyDurationVal" class="font-title text-2xl font-extrabold text-sky-300 min-w-[2rem] text-center">3</span>
+                            <button onclick="adjustDuration(1)" class="w-9 h-9 rounded-lg bg-wyrd-800 hover:bg-sky-900/50 border border-wyrd-700 text-white font-bold">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Affinity Zone Reminder -->
+                    <div class="bg-wyrd-950/70 p-3.5 rounded-xl border border-wyrd-800 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-amber-400 uppercase">ระดับความพึงพอใจ (Affinity Zone)</span>
+                            <p class="text-xs text-slate-400 mt-0.5">ระวัง: การขึ้นถึงช่องสีเขียวไม่ได้ชนะทันที ต้องรอให้ Duration หมดลงเหลือ 0!</p>
+                        </div>
+                        <div class="flex gap-1.5 shrink-0">
+                            <span class="w-4 h-8 rounded bg-red-600/80 border border-red-400" title="สีแดง (ล้มเหลว)"></span>
+                            <span class="w-4 h-8 rounded bg-slate-500/80 border border-slate-300" title="สีเทา (เสมอตัว)"></span>
+                            <span class="w-4 h-8 rounded bg-emerald-600/80 border border-emerald-400" title="สีเขียว (สำเร็จ)"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 0: STARTING ENCOUNTER SETUP -->
+            <div class="bg-wyrd-900/80 border border-wyrd-700 rounded-2xl overflow-hidden shadow-xl">
+                <div class="bg-wyrd-800/90 px-5 py-3.5 border-b border-wyrd-700 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <i class="ph-fill ph-flag-banner text-wyrd-accent text-xl"></i>
+                        <h2 class="font-title font-bold text-base sm:text-lg text-wyrd-accent">การเตรียมตัวเริ่มเปิดฉาก (Starting the Encounter)</h2>
+                    </div>
+                    <button onclick="resetEncounterAll()" class="text-xs px-3 py-1.5 rounded-lg bg-wyrd-950 hover:bg-wyrd-700 text-slate-300 border border-wyrd-700 flex items-center gap-1.5 transition">
+                        <i class="ph-bold ph-arrows-clockwise"></i> เริ่ม Encounter ใหม่
+                    </button>
+                </div>
+
+                <div class="p-4 sm:p-5 space-y-2.5">
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden enc-setup-check">
+                        <div class="p-3 rounded-xl bg-wyrd-950/60 border border-wyrd-800 flex items-start gap-3">
+                            <div class="check-icon w-5 h-5 rounded-md border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-xs"></i>
+                            </div>
+                            <div class="text-xs sm:text-sm">
+                                <span class="step-title font-semibold text-slate-100">1. จั่วการ์ดเริ่มต้นคนละ 3 ใบ (Draw 3 Cards)</span>
+                                <p class="text-slate-400 mt-0.5">สมาชิกทุกคนในปาร์ตี้จั่วการ์ด 3 ใบจากเด็คของตนเอง</p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Diplomacy-only setup step -->
+                    <label id="setup-diplomacy-only" class="hidden cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden enc-setup-check">
+                        <div class="p-3 rounded-xl bg-sky-950/30 border border-sky-800/60 flex items-start gap-3">
+                            <div class="check-icon w-5 h-5 rounded-md border-2 border-sky-400 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-xs"></i>
+                            </div>
+                            <div class="text-xs sm:text-sm">
+                                <span class="step-title font-semibold text-sky-200">2. ตั้งเต๋า Duration & วางโทเคนช่อง "S" บน Affinity Track</span>
+                                <p class="text-slate-300 mt-0.5">ตั้งหน้าเต๋า Duration ตามตัวเลขข้างสัญลักษณ์นาฬิกาบนหัวการ์ด และวางโทเคนเริ่มที่ช่อง <strong>S (Starting Slot)</strong></p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden enc-setup-check">
+                        <div class="p-3 rounded-xl bg-wyrd-950/60 border border-wyrd-800 flex items-start gap-3">
+                            <div class="check-icon w-5 h-5 rounded-md border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-xs"></i>
+                            </div>
+                            <div class="text-xs sm:text-sm">
+                                <span class="step-title font-semibold text-slate-100">ตรวจสอบความสามารถพิเศษของศัตรู (Check Enemy Traits)</span>
+                                <p class="text-slate-400 mt-0.5">อ่าน Trait ใต้ภาพศัตรู เช่น <span class="text-amber-300">Entrapment</span> (ตอนเริ่มสู้ ต้องทิ้งการ์ดบนมือ 1 ใบ หรือเสีย 1⚡) หรือ <span class="text-sky-300">Greedy</span> (ตอนเริ่มเจรจา ต้องจ่าย 1 Wealth หรือเพิ่มเวลา +1 Duration)</p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden enc-setup-check">
+                        <div class="p-3 rounded-xl bg-wyrd-950/60 border border-wyrd-800 flex items-start gap-3">
+                            <div class="check-icon w-5 h-5 rounded-md border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-xs"></i>
+                            </div>
+                            <div class="text-xs sm:text-sm">
+                                <span class="step-title font-semibold text-slate-100">ตัดสินใจเปลี่ยนมือเริ่มต้น (Mulligan / Redraw - ถ้าต้องการ)</span>
+                                <p class="text-slate-400 mt-0.5">หากไม่พอใจการ์ดบนมือ สามารถวางแยกไว้ จั่วชุดใหม่โดยลดจำนวนลง 1 ใบ (เหลือ 2 ใบ) แล้วสับชุดเก่าคืนเข้าเด็ค (ทำซ้ำได้จนเหลือ 1 ใบ)</p>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- TURN PHASES (I - V) -->
+            <div class="bg-wyrd-900/80 border border-wyrd-700 rounded-2xl overflow-hidden shadow-xl">
+                <div class="bg-wyrd-800/90 px-5 py-3.5 border-b border-wyrd-700 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5">
+                        <i class="ph-fill ph-arrows-Clockwise text-emerald-400 text-xl"></i>
+                        <div>
+                            <h2 class="font-title font-bold text-base sm:text-lg text-slate-100">ลำดับแต่ละเทิร์น (Turn Sequence: Phase I - V)</h2>
+                            <p class="text-xs text-slate-400">ติ๊กเช็คทีละขั้นขณะเล่นในแต่ละเทิร์น</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="nextCharacterActivation()" class="text-xs px-3 py-1.5 rounded-lg bg-sky-900/70 hover:bg-sky-800 text-sky-200 border border-sky-600/50 transition">
+                            สลับเพื่อนคนถัดไป (รีเซ็ต Phase I-III)
+                        </button>
+                        <button onclick="nextEncounterTurn()" class="text-xs px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white font-semibold transition">
+                            ขึ้นเทิร์นใหม่ (รีเซ็ต I-V)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-4 sm:p-5 space-y-3">
+
+                    <!-- PHASE I -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden enc-turn-check enc-char-check">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/70 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="step-title font-bold text-amber-300 text-sm sm:text-base">Phase I: เลือกตัวละครที่จะลงมือ (Pick the Active Character)</div>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1">
+                                    เลือกสมาชิกในปาร์ตี้ที่ยังไม่ได้ลงมือในเทิร์นนี้ (ยังไม่มีโทเคน ⏳ บนถาดตัวละคร) ให้วางโทเคน ⏳ ลงบนถาดของคนนั้นเพื่อระบุว่าเป็น <strong>Active Character</strong> <span class="text-slate-500 italic">(เอฟเฟกต์บวกลบใดๆ ในเทิร์นนี้จะส่งผลกับ Active Character เท่านั้น ยกเว้นระบุเป็นกลุ่ม)</span>
+                                </p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- PHASE II - STEP 1 -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden enc-turn-check enc-char-check">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/70 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="step-title font-bold text-amber-300 text-sm sm:text-base">Phase II (ขั้นย่อย 1): เช็คเอฟเฟกต์หน่วงเวลา (Delayed Abilities ⏳)</div>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1">
+                                    หยิบโทเคนเวลา (⏳) ออก <strong>1 อัน</strong> จากการ์ดทุกใบที่เรียงอยู่ในแถว Sequence (ไล่จากซ้ายไปขวาตั้งแต่การ์ดศัตรู) หากการ์ดใบใดถูกนำโทเคน ⏳ <strong>อันสุดท้ายออก</strong> ให้ความสามารถ <span class="text-purple-300 font-semibold">⏳ Delayed Ability</span> บนการ์ดใบนั้นทำงานทันที!
+                                </p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- PHASE II - STEP 2 -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden enc-turn-check enc-char-check">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/70 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="step-title font-bold text-amber-300 text-sm sm:text-base">Phase II (ขั้นย่อย 2): เล่นการ์ดต่อแถว (Playing Cards & Resolving Keys)</div>
+                                <div class="text-xs sm:text-sm text-slate-300 mt-1.5 space-y-2">
+                                    <p class="text-purple-300 bg-purple-950/40 border border-purple-800/50 px-2.5 py-1.5 rounded-lg">
+                                        <strong>😱 เช็คอาการคุ้มคลั่ง (Panic Check):</strong> หากโทเคน Terror (👁️) ของคุณอยู่ในโซนสีแดง แทนที่จะเล่นการ์ดใบแรกจากมือ คุณ<strong>ต้องเปิดการ์ดใบบนสุดจากเด็ค</strong>มาวางต่อท้ายแถวเป็นใบแรกแทน!
+                                    </p>
+                                    <p>เมื่อวางการ์ดต่อท้ายแถว (Sequence) ให้<strong>คิดผลตามลำดับ 1 ➔ 5 ดังนี้เสมอ:</strong></p>
+                                    <ol class="list-decimal list-inside pl-2 space-y-1 text-slate-400 bg-wyrd-900 p-3 rounded-xl border border-wyrd-800">
+                                        <li><strong>Attribute Keys (3 ช่องบน):</strong> ไล่จากบนลงล่าง หากสัญลักษณ์ประกบกันและคุณมีค่าสถานะ<strong>ถึงเกณฑ์ที่ระบุ</strong> จะได้รับโบนัสทันที <span id="diplomacy-quill-note" class="hidden text-sky-300 font-medium">(ในโหมดเจรจา หากได้โบนัสรูปขนนก 🪶 ให้ดูผลลัพธ์ที่ตารางฝั่งซ้ายของการ์ดศัตรูตามสายสถานะนั้นๆ)</span></li>
+                                        <li><strong>Magic Key (ช่องเวทมนตร์):</strong> หากประกบกัน เลือกจ่าย 1 Magic เพื่อรับโบนัสได้ (เพื่อนในปาร์ตี้จ่าย Magic แทนได้)</li>
+                                        <li><strong>Free Key (ช่องล่างสุด):</strong> ประกบกันเสมอ รับโบนัสคูณตามตัวเลข (เช่น 1x, 2x แต่ถ้าเป็น 0x จะไม่ได้รับโบนัส)</li>
+                                        <li><strong>ความสามารถเมื่อวาง (On Placement Ability):</strong> หากกล่องข้อความของการ์ดมีสัญลักษณ์วางการ์ด ให้ทำงานทันที (หากวางทับการ์ดใบก่อนหน้าที่มี ⏳ เหลืออยู่และไม่ใช่การ์ด Passive ให้นำ ⏳ ออกทั้งหมดโดยไม่ทำงาน)</li>
+                                        <li><strong>เล่นการ์ดใบถัดไป (Additional Cards):</strong> หากต้องการเล่นการ์ดใบที่ 2, 3, ... ต่อในเทิร์นเดียวกัน การ์ดใบใหม่ที่จะลง<strong>ต้องสามารถรับโบนัสสายฟ้า (⚡ Bonus) จาก Key ช่องใดช่องหนึ่งบนตัวมันเองได้สำเร็จ!</strong></li>
+                                    </ol>
+                                    
+                                    <!-- Dynamic Mode Specific Notes inside Phase II.2 -->
+                                    <div id="phase2-combat-note" class="bg-red-950/30 border border-red-800/50 p-2.5 rounded-lg text-xs text-red-200 space-y-1">
+                                        <p>⚔️ <strong>กฎเฉพาะการต่อสู้ (Combat):</strong></p>
+                                        <p>• <strong>ไม่ได้เล่นการ์ดเลย:</strong> หากคุณไม่เล่นการ์ดแม้แต่ใบเดียวในตานี้ ศัตรูจะโจมตีด้วยท่า <strong>Opportunity Attack</strong> ทันที ก่อนจะไปโดนตีซ้ำใน Phase III!</p>
+                                        <p>• <strong>การหนี (Escape):</strong> กดหนีได้ตลอดเวลาในตานี้โดยเสีย <strong>-1 Energy (⚡)</strong> แล้วข้ามไปรับการโจมตีของศัตรูใน Phase III จากนั้นจึงออกจากการต่อสู้ (ถือว่าแพ้และไม่ได้ Loot)</p>
+                                    </div>
+                                    <div id="phase2-diplomacy-note" class="hidden bg-sky-950/30 border border-sky-800/50 p-2.5 rounded-lg text-xs text-sky-200 space-y-1">
+                                        <p>💬 <strong>กฎเฉพาะการเจรจา (Diplomacy):</strong></p>
+                                        <p>• <strong>การเลี่ยงเจรจา (Avoid):</strong> ปาร์ตี้ต้องตกลงเป็นเอกฉันท์เพื่อกด Avoid โดยเลื่อน Affinity ลง <strong>4 ช่อง</strong> และลด Duration เหลือ 0 เพื่อจบและรับบทสรุป Conclusion ทันที (แต่ถ้าศัตรูมี Trait <em>Discouraging</em> จะบังคับรับผลสีแดง ❌ ทันที)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- PHASE III -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden enc-turn-check enc-char-check">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/70 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div id="phase3-title" class="step-title font-bold text-red-400 text-sm sm:text-base">
+                                    Phase III: ศัตรูโจมตี / ตอบโต้ (Enemy Attack / Response)
+                                </div>
+                                <div class="text-xs sm:text-sm text-slate-300 mt-1.5 space-y-1.5">
+                                    <p>แก้ไขผลตามลำดับ <strong>Before ⚔️/💬 ➔ ตัวท่าของศัตรู (จากซ้ายไปขวา) ➔ After ⚔️/💬</strong>:</p>
+                                    <ul class="list-disc list-inside pl-2 text-slate-400 space-y-1">
+                                        <li id="phase3-mode-detail"><strong>การต่อสู้:</strong> ดูจำนวนแต้มใน Combat Pool ปัจจุบัน แล้วใช้ท่าโจมตีของศัตรูในแถวช่วงคะแนนนั้นโจมตีใส่ Active Character</li>
+                                        <li>หากหน้าเอฟเฟกต์ใดมีสัญลักษณ์กลุ่ม (<strong>⋮</strong>) ให้ส่งผลนั้นกับ<strong>สมาชิกทุกคนในปาร์ตี้</strong></li>
+                                        <li><strong>กฎแต้มติดลบ (โม่เด็คแทน):</strong> หากศัตรูทำให้แต้มใน Combat Pool ลดลงต่ำกว่า 0 หรือดัน Affinity ลงต่ำกว่าช่องล่างสุด <strong>ให้ Active Character ทิ้งการ์ดใบบนสุดของเด็ค 1 ใบ ต่อทุกๆ 1 แต้มที่เกินลงไปแทน!</strong></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- PHASE IV -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden enc-turn-check">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/70 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="step-title font-bold text-sky-300 text-sm sm:text-base">Phase IV: ตรวจสอบความพร้อมของปาร์ตี้ (Check Readiness)</div>
+                                <p class="text-xs sm:text-sm text-slate-400 mt-1">
+                                    ดูว่าสมาชิกทุกคนในปาร์ตี้ได้ลงมือครบทุกคนหรือยัง (มี ⏳ บนถาดครบทุกคนไหม):
+                                    <span class="block mt-1 text-amber-300">• <strong>ถ้ายังมีคนไม่ได้ลงมือ:</strong> วนกลับไปทำ <strong>Phase I</strong> เพื่อให้เพื่อนคนถัดไปเล่น (กดปุ่ม <em>"สลับเพื่อนคนถัดไป"</em> ด้านบนได้)</span>
+                                    <span class="block text-emerald-300">• <strong>ถ้าลงมือครบทุกคนแล้ว:</strong> ไปต่อที่ <strong>Phase V (จบเทิร์น)</strong></span>
+                                </p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- PHASE V -->
+                    <label class="block cursor-pointer select-none">
+                        <input type="checkbox" class="custom-checkbox hidden enc-turn-check">
+                        <div class="p-3.5 rounded-xl bg-wyrd-950/70 border border-wyrd-800 hover:border-wyrd-700 transition flex items-start gap-3.5">
+                            <div class="check-icon w-6 h-6 rounded-lg border-2 border-slate-500 flex items-center justify-center mt-0.5 shrink-0 transition">
+                                <i class="ph-bold ph-check text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="step-title font-bold text-emerald-400 text-sm sm:text-base">Phase V: จบเทิร์นและฟื้นมือ (End Turn)</div>
+                                <ul class="text-xs sm:text-sm text-slate-400 mt-1 space-y-1 list-decimal list-inside">
+                                    <li><strong>ทิ้งการ์ดเกินมือ:</strong> สมาชิกแต่ละคนทิ้งการ์ดบนมือให้เหลือไม่เกิน <strong>3 ใบ</strong></li>
+                                    <li><strong>จั่วการ์ด 1 ใบ:</strong> สมาชิกแต่ละคนจั่วการ์ด <strong>1 ใบ</strong> จากเด็ค <span class="text-purple-400 font-semibold">(*ใครที่ติดสถานะ Panic ห้ามจั่วการ์ดในขั้นตอนนี้!*)</span></li>
+                                    <li><strong>เคลียร์โทเคนแสดงตน:</strong> นำโทเคน ⏳ ออกจากถาดตัวละครของทุกคน (ห้ามเอา ⏳ บนการ์ดในแถว Sequence ออก) แล้วเริ่มเทิร์นใหม่ที่ Phase I</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </label>
+
+                </div>
+            </div>
+
+            <!-- ENDING & CLEANUP REFERENCE CARD -->
+            <div class="bg-wyrd-900/80 border border-wyrd-700 rounded-2xl p-4 sm:p-5 space-y-3">
+                <h3 class="font-title font-bold text-base text-wyrd-accent flex items-center gap-2">
+                    <i class="ph-fill ph-trophy text-lg"></i> เงื่อนไขจบการปะทะ & การเก็บกวาด (Ending & Cleanup)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs sm:text-sm">
+                    <div class="bg-wyrd-950/80 p-3.5 rounded-xl border border-red-900/40">
+                        <h4 class="font-bold text-red-400 mb-1">⚔️ การจบการต่อสู้ (Combat Victory)</h4>
+                        <p class="text-slate-400 leading-relaxed">
+                            ชนะ<strong>ทันที</strong>ในวินาทีที่แต้มใน Combat Pool <strong>เท่ากับหรือมากกว่า</strong>ค่าพลังชีวิตของศัตรู (หยุดคิดเอฟเฟกต์ที่เหลือทั้งหมด) แจกจ่ายรางวัล <strong>Loot</strong> (รายการที่มี <strong>⋮</strong> นำหน้าจะได้ทุกคน ส่วนที่ไม่มีให้แบ่งกันในปาร์ตี้)
+                        </p>
+                    </div>
+                    <div class="bg-wyrd-950/80 p-3.5 rounded-xl border border-sky-900/40">
+                        <h4 class="font-bold text-sky-400 mb-1">💬 การจบการเจรจา (Diplomacy Conclusion)</h4>
+                        <p class="text-slate-400 leading-relaxed">
+                            จบ<strong>ทันที</strong>เมื่อแต้ม <strong>Duration (⏳) ลดลงเหลือ 0</strong> ดูว่าโทเคนบน Affinity Track อยู่สีอะไร (เขียว ✔️ / เทา ➖ / แดง ❌) แล้วรับผล Conclusion ตามสีนั้น
+                        </p>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-400 bg-wyrd-950/60 p-3 rounded-xl border border-wyrd-800">
+                    <strong>🧹 ขั้นตอนเก็บกวาด (Cleanup):</strong> หากแพ้ต่อการ์ดที่มีสัญลักษณ์ Guardian ให้วางสแตนดี้ Guardian ลงบนสถานที่นั้น (แต่ถ้าชนะหรือเป็นศัตรูทั่วไป ให้นำการ์ดสอดไว้ใต้กอง Encounter เดิม) จากนั้นนำการ์ดบนมือ, ในแถว Sequence และกองทิ้งทั้งหมดมารวมกันแล้วสับกลับเข้าเด็คของแต่ละคน
+                </p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="max-w-5xl w-full mx-auto px-4 py-6 text-center text-xs text-slate-500 border-t border-wyrd-800/60 mt-8">
+        สร้างขึ้นเพื่อใช้ประกอบการเล่นบอร์ดเกม <strong>Tainted Grail: Kings of Ruin</strong> • อ้างอิงกฎจาก Official Rulebook
+    </footer>
+
+    <script>
+        let currentDay = 1;
+        let playerCount = 2;
+        let combatPool = 0;
+        let diplomacyDuration = 3;
+        let currentEncounterMode = 'combat';
+
+        // Switch between Main Tabs (1. Order of the Day vs 2. Combat & Diplomacy)
+        function switchMainTab(tab) {
+            const secDay = document.getElementById('section-day');
+            const secEnc = document.getElementById('section-encounter');
+            const btnDay = document.getElementById('tabBtn-day');
+            const btnEnc = document.getElementById('tabBtn-encounter');
+
+            if (tab === 'day') {
+                secDay.classList.remove('hidden');
+                secEnc.classList.add('hidden');
+                btnDay.className = "flex-1 py-3 text-sm sm:text-base font-semibold border-b-2 border-wyrd-accent text-wyrd-accent flex items-center justify-center gap-2 transition";
+                btnEnc.className = "flex-1 py-3 text-sm sm:text-base font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center justify-center gap-2 transition";
+            } else {
+                secDay.classList.add('hidden');
+                secEnc.classList.remove('hidden');
+                btnEnc.className = "flex-1 py-3 text-sm sm:text-base font-semibold border-b-2 border-wyrd-accent text-wyrd-accent flex items-center justify-center gap-2 transition";
+                btnDay.className = "flex-1 py-3 text-sm sm:text-base font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center justify-center gap-2 transition";
+            }
+        }
+
+        function changeDay(delta) {
+            currentDay = Math.max(1, currentDay + delta);
+            document.getElementById('dayCountDisplay').textContent = currentDay;
+        }
+
+        function updatePlayerScaling() {
+            const select = document.getElementById('playerCountSelect');
+            playerCount = parseInt(select.value, 10) || 2;
+
+            document.getElementById('waystonePlayerLabel').textContent = `${playerCount} คน`;
+            document.getElementById('wsMagicCost').textContent = `${playerCount} Magic`;
+            document.getElementById('wsResCost').textContent = `${playerCount} Wealth หรือ Food`;
+            document.getElementById('wsHealthCost').textContent = `${playerCount * 3} Health (🩸)`;
+            document.getElementById('wsTerrorCost').textContent = `${playerCount * 2} Terror (👁️)`;
+        }
+
+        function updateDayProgress() {
+            const checks = document.querySelectorAll('.day-check');
+            let checkedCount = 0;
+            checks.forEach(c => {
+                if (c.checked) checkedCount++;
+            });
+
+            const total = checks.length;
+            const pct = total > 0 ? Math.round((checkedCount / total) * 100) : 0;
+
+            document.getElementById('dayProgressText').textContent = `${checkedCount} / ${total} ขั้นตอน`;
+            document.getElementById('dayProgressBar').style.width = `${pct}%`;
+        }
+
+        function resetGroup(groupName) {
+            const checks = document.querySelectorAll(`.group-${groupName}`);
+            checks.forEach(c => c.checked = false);
+            updateDayProgress();
+        }
+
+        function startNextDay() {
+            changeDay(1);
+            const checks = document.querySelectorAll('.day-check');
+            checks.forEach(c => c.checked = false);
+            updateDayProgress();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function switchEncounterMode(mode) {
+            currentEncounterMode = mode;
+            const btnCombat = document.getElementById('encModeBtn-combat');
+            const btnDip = document.getElementById('encModeBtn-diplomacy');
+            const trackerCombat = document.getElementById('tracker-combat');
+            const trackerDip = document.getElementById('tracker-diplomacy');
+            const setupDipOnly = document.getElementById('setup-diplomacy-only');
+            const quillNote = document.getElementById('diplomacy-quill-note');
+            const p2Combat = document.getElementById('phase2-combat-note');
+            const p2Dip = document.getElementById('phase2-diplomacy-note');
+            const p3Title = document.getElementById('phase3-title');
+            const p3Detail = document.getElementById('phase3-mode-detail');
+
+            if (mode === 'combat') {
+                btnCombat.className = "flex-1 py-3 px-4 rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 bg-gradient-to-r from-red-900/80 to-red-800/60 text-red-100 border border-red-500/50 shadow-md transition";
+                btnDip.className = "flex-1 py-3 px-4 rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 text-slate-400 hover:text-slate-200 border border-transparent transition";
+                
+                trackerCombat.classList.remove('hidden');
+                trackerDip.classList.add('hidden');
+                setupDipOnly.classList.add('hidden');
+                quillNote.classList.add('hidden');
+                p2Combat.classList.remove('hidden');
+                p2Dip.classList.add('hidden');
+
+                p3Title.textContent = "Phase III: ศัตรูโจมตี (Enemy Attack ⚔️)";
+                p3Title.className = "step-title font-bold text-red-400 text-sm sm:text-base";
+                p3Detail.innerHTML = "<strong>การต่อสู้:</strong> ดูจำนวนแต้มใน Combat Pool ปัจจุบัน แล้วใช้ท่าโจมตีของศัตรูในแถวช่วงคะแนนนั้นโจมตีใส่ Active Character";
+            } else {
+                btnDip.className = "flex-1 py-3 px-4 rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 bg-gradient-to-r from-sky-900/80 to-sky-800/60 text-sky-100 border border-sky-500/50 shadow-md transition";
+                btnCombat.className = "flex-1 py-3 px-4 rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 text-slate-400 hover:text-slate-200 border border-transparent transition";
+                
+                trackerCombat.classList.add('hidden');
+                trackerDip.classList.remove('hidden');
+                setupDipOnly.classList.remove('hidden');
+                quillNote.classList.remove('hidden');
+                p2Combat.classList.add('hidden');
+                p2Dip.classList.remove('hidden');
+
+                p3Title.textContent = "Phase III: ศัตรูตอบโต้การเจรจา (Enemy Response 💬)";
+                p3Title.className = "step-title font-bold text-sky-400 text-sm sm:text-base";
+                p3Detail.innerHTML = "<strong>การเจรจา:</strong> ใช้ผลจากช่องขวาของตาราง Diplomacy บนการ์ดศัตรู (เช่น ลดระดับ Affinity ลง หรือลด Duration ⏳) หาก Duration ลดเหลือ 0 ให้หยุดทันทีและไปเช็คผล Conclusion!";
+            }
+        }
+
+        function adjustCombatPool(delta) {
+            combatPool = Math.max(0, combatPool + delta);
+            document.getElementById('combatPoolValue').textContent = combatPool;
+        }
+
+        function adjustDuration(delta) {
+            diplomacyDuration = Math.min(10, Math.max(0, diplomacyDuration + delta));
+            document.getElementById('diplomacyDurationVal').textContent = diplomacyDuration;
+        }
+
+        function nextCharacterActivation() {
+            const charChecks = document.querySelectorAll('.enc-char-check');
+            charChecks.forEach(c => c.checked = false);
+        }
+
+        function nextEncounterTurn() {
+            const turnChecks = document.querySelectorAll('.enc-turn-check');
+            turnChecks.forEach(c => c.checked = false);
+        }
+
+        function resetEncounterAll() {
+            document.querySelectorAll('.enc-setup-check, .enc-turn-check').forEach(c => c.checked = false);
+            combatPool = 0;
+            diplomacyDuration = 3;
+            document.getElementById('combatPoolValue').textContent = combatPool;
+            document.getElementById('diplomacyDurationVal').textContent = diplomacyDuration;
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            updatePlayerScaling();
+            updateDayProgress();
+        };
+    </script>
+</body>
+</html>
+```
